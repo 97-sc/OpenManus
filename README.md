@@ -1,227 +1,135 @@
-<p align="center">
-  <img src="assets/logo.jpg" width="200"/>
-</p>
+# OpenManus 二次开发：本地化 AI 智能体财报分析系统
 
-English | [中文](README_zh.md) | [한국어](README_ko.md) | [日本語](README_ja.md)
+> 基于 [FoundationAgents/OpenManus](https://github.com/FoundationAgents/OpenManus) 的二次开发项目
+> 在保留原框架核心能力的基础上，新增简体中文提示词、可视化 Web UI、自动化财报分析工具三大能力
 
-[![GitHub stars](https://img.shields.io/github/stars/FoundationAgents/OpenManus?style=social)](https://github.com/FoundationAgents/OpenManus/stargazers)
-&ensp;
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) &ensp;
-[![Discord Follow](https://dcbadge.vercel.app/api/server/DYn29wFk9z?style=flat)](https://discord.gg/DYn29wFk9z)
-[![Demo](https://img.shields.io/badge/Demo-Hugging%20Face-yellow)](https://huggingface.co/spaces/lyh-917/OpenManusDemo)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15186407.svg)](https://doi.org/10.5281/zenodo.15186407)
+## 项目简介
 
-# 👋 OpenManus
+OpenManus 是 FoundationAgents 开源的通用 AI 智能体框架。本项目在其基础上做二次开发，重点解决三个问题：
 
-Manus is incredible, but OpenManus can achieve any idea without an *Invite Code* 🛫!
+- 英文提示词对中文用户不友好
+- 命令行交互缺乏可视化界面
+- 没有针对垂直领域（财报分析）的开箱即用工具
 
-Our team members [@Xinbing Liang](https://github.com/mannaandpoem) and [@Jinyu Xiang](https://github.com/XiangJinyu) (core authors), along with [@Zhaoyang Yu](https://github.com/MoshiQAQ), [@Jiayi Zhang](https://github.com/didiforgithub), and [@Sirui Hong](https://github.com/stellaHSR), we are from [@MetaGPT](https://github.com/geekan/MetaGPT). The prototype is launched within 3 hours and we are keeping building!
+## 二次开发内容
 
-It's a simple implementation, so we welcome any suggestions, contributions, and feedback!
+### 1. 简体中文提示词（汉化方向）
 
-Enjoy your own agent with OpenManus!
+将系统提示词与默认示例全部汉化，降低中文用户理解成本，输出更贴近本地化表达习惯。
 
-We're also excited to introduce [OpenManus-RL](https://github.com/OpenManus/OpenManus-RL), an open-source project dedicated to reinforcement learning (RL)- based (such as GRPO) tuning methods for LLM agents, developed collaboratively by researchers from UIUC and OpenManus.
+### 2. Gradio Web UI（可视化方向）
 
-## Project Demo
+基于 Gradio 4.31.0 + starlette 0.40.0 搭建浏览器可视化界面，支持：
 
-<video src="https://private-user-images.githubusercontent.com/61239030/420168772-6dcfd0d2-9142-45d9-b74e-d10aa75073c6.mp4?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDEzMTgwNTksIm5iZiI6MTc0MTMxNzc1OSwicGF0aCI6Ii82MTIzOTAzMC80MjAxNjg3NzItNmRjZmQwZDItOTE0Mi00NWQ5LWI3NGUtZDEwYWE3NTA3M2M2Lm1wND9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTAzMDclMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwMzA3VDAzMjIzOVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTdiZjFkNjlmYWNjMmEzOTliM2Y3M2VlYjgyNDRlZDJmOWE3NWZhZjE1MzhiZWY4YmQ3NjdkNTYwYTU5ZDA2MzYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.UuHQCgWYkh0OQq9qsUWqGsUbhG3i9jcZDAMeHjLt5T4" data-canonical-src="https://private-user-images.githubusercontent.com/61239030/420168772-6dcfd0d2-9142-45d9-b74e-d10aa75073c6.mp4?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDEzMTgwNTksIm5iZiI6MTc0MTMxNzc1OSwicGF0aCI6Ii82MTIzOTAzMC80MjAxNjg3NzItNmRjZmQwZDItOTE0Mi00NWQ5LWI3NGUtZDEwYWE3NTA3M2M2Lm1wND9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTAzMDclMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwMzA3VDAzMjIzOVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTdiZjFkNjlmYWNjMmEzOTliM2Y3M2VlYjgyNDRlZDJmOWE3NWZhZjE1MzhiZWY4YmQ3NjdkNTYwYTU5ZDA2MzYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.UuHQCgWYkh0OQq9qsUWqGsUbhG3i9jcZDAMeHjLt5T4" controls="controls" muted="muted" class="d-block rounded-bottom-2 border-top width-fit" style="max-height:640px; min-height: 200px"></video>
+- 自然语言输入任务
+- 实时查看智能体思考过程
+- 工具调用轨迹可视化
 
-## Installation
+### 3. FinancialReportTool（核心工具 - 财报分析方向）
 
-We provide two installation methods. Method 2 (using uv) is recommended for faster installation and better dependency management.
+新增 `app/tool/financial_report.py`，针对零售/制造类企业财报自动计算：
 
-### Method 1: Using conda
+- 盈利能力：毛利率、净利率、ROE、ROA
+- 偿债能力：资产负债率、流动比率、速动比率
+- 多期同比分析（YoY，按中国股市习惯涨红跌绿标色）
 
-1. Create a new conda environment:
+## 技术栈
+
+- 语言：Python 3.13
+- 框架：OpenManus（基于 ReAct 智能体架构）
+- LLM：Ollama 本地推理（qwen2.5:7b）
+- Web UI：Gradio 4.31.0 + starlette 0.40.0
+- 数据处理：openpyxl（xlsx 读写）、pandas（数据清洗）
+- 报告生成：reportlab（PDF 输出）
+
+## 快速开始
+
+### 1. 克隆与虚拟环境
 
 ```bash
-conda create -n open_manus python=3.12
-conda activate open_manus
-```
-
-2. Clone the repository:
-
-```bash
-git clone https://github.com/FoundationAgents/OpenManus.git
+git clone https://github.com/97-sc/OpenManus.git
 cd OpenManus
-```
-
-3. Install dependencies:
-
-```bash
+python -m venv venv
+source venv/Scripts/activate   # Git Bash 环境
 pip install -r requirements.txt
 ```
 
-### Method 2: Using uv (Recommended)
+### 2. 配置 LLM
 
-1. Install uv (A fast Python package installer and resolver):
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-2. Clone the repository:
-
-```bash
-git clone https://github.com/FoundationAgents/OpenManus.git
-cd OpenManus
-```
-
-3. Create a new virtual environment and activate it:
-
-```bash
-uv venv --python 3.12
-source .venv/bin/activate  # On Unix/macOS
-# Or on Windows:
-# .venv\Scripts\activate
-```
-
-4. Install dependencies:
-
-```bash
-uv pip install -r requirements.txt
-```
-
-### Browser automation
-
-OpenManus starts Browser Use CLI 3.0 as a default MCP server:
-
-```bash
-uvx browser-use --cli-mcp
-```
-
-`uvx` keeps Browser Use and its fast-moving dependencies isolated from the
-OpenManus environment. The agent receives the canonical Browser Use skill and
-the native `browser_exec` and `browser_screenshot` tools.
-
-Local mode attaches to Chrome or Chromium automatically and needs no API key.
-For diagnostics or to install Chromium, run:
-
-```bash
-uvx browser-use --doctor
-uvx browser-use install
-```
-
-For an isolated Browser Use Cloud browser, authenticate before starting
-OpenManus. The agent can then start and select a named remote browser:
-
-```bash
-export BROWSER_USE_API_KEY="bu_..."
-```
-
-Existing browsers can be selected with `BU_CDP_URL`, `BU_CDP_WS`, or `BU_NAME`.
-Set `OPENMANUS_DISABLE_BROWSER_USE=1` to disable the default Browser Use MCP
-server.
-
-BrowserGym still requires its Playwright browser:
-
-```bash
-playwright install
-```
-
-## Configuration
-
-OpenManus requires configuration for the LLM APIs it uses. Follow these steps to set up your configuration:
-
-1. Create a `config.toml` file in the `config` directory (you can copy from the example):
-
-```bash
-cp config/config.example.toml config/config.toml
-```
-
-2. Edit `config/config.toml` to add your API keys and customize settings:
+复制 `config/config.example.toml` 为 `config/config.toml`，填入 Ollama 地址：
 
 ```toml
-# Global LLM configuration
 [llm]
-model = "gpt-4o"
-base_url = "https://api.openai.com/v1"
-api_key = "sk-..."  # Replace with your actual API key
-max_tokens = 4096
-temperature = 0.0
-
-# Optional configuration for specific LLM models
-[llm.vision]
-model = "gpt-4o"
-base_url = "https://api.openai.com/v1"
-api_key = "sk-..."  # Replace with your actual API key
+model = "qwen2.5:7b"
+base_url = "http://localhost:11434/v1"
+api_key = "ollama"
 ```
 
-## Quick Start
+> 注：config/config.toml 已在 .gitignore 中，不会上传到 GitHub
 
-One line for run OpenManus:
+### 3. 启动 Web UI
 
 ```bash
-python main.py
+python web_ui.py
 ```
 
-Then input your idea via terminal!
+浏览器访问 http://127.0.0.1:7860
 
-For MCP tool version, you can run:
-```bash
-python run_mcp.py
-```
-
-For unstable multi-agent version, you also can run:
+### 4. 直接测试财报分析工具（无需启动智能体）
 
 ```bash
-python run_flow.py
+python test_financial_tool.py
 ```
 
-### Custom Adding Multiple Agents
+## 示例报告（真实输出）
 
-Currently, besides the general OpenManus Agent, we have also integrated the DataAnalysis Agent, which is suitable for data analysis and data visualization tasks. You can add this agent to `run_flow` in `config.toml`.
+对 examples/tesco_fy2024_sample.xlsx 运行 FinancialReportTool 得到的分析报告（节选）：
 
-```toml
-# Optional configuration for run-flow
-[runflow]
-use_data_analysis_agent = true     # Disabled by default, change to true to activate
+```markdown
+# 财报分析报告
+
+**分析期间**：2024, 2023, 2022
+**分析类型**：full
+
+## 关键财务比率
+
+| 指标 | 2024 | 2023 | 同比 |
+|------|------|------|------|
+| 毛利率 | 30.00% | 28.50% | +1.50pp |
+| 净利率 | 10.00% | 8.20% | +1.80pp |
+| ROE | 16.67% | 14.50% | +2.17pp |
+| ROA | 6.67% | 5.80% | +0.87pp |
+| 资产负债率 | 60.00% | 62.00% | -2.00pp |
+| 流动比率 | 1.50 | 1.45 | +0.05 |
+| 速动比率 | 1.12 | 1.05 | +0.07 |
 ```
-In addition, you need to install the relevant dependencies to ensure the agent runs properly: [Detailed Installation Guide](app/tool/chart_visualization/README.md##Installation)
 
-## How to contribute
+## 效果展示
 
-We welcome any friendly suggestions and helpful contributions! Just create issues or submit pull requests.
+- 智能体可自主识别 Excel 表头、按期间分组
+- 自动计算 7 项核心财务比率
+- 多期同比分析（YoY），按中国股市习惯标红/标绿
+- 输出 Markdown 结构化报告，可直接粘贴到周报/年报
 
-Or contact @mannaandpoem via 📧email: mannaandpoem@gmail.com
+## 项目结构
 
-**Note**: Before submitting a pull request, please use the pre-commit tool to check your changes. Run `pre-commit run --all-files` to execute the checks.
-
-## Community Group
-Join our networking group on Feishu and share your experience with other developers!
-
-<div align="center" style="display: flex; gap: 20px;">
-    <img src="assets/community_group.jpg" alt="OpenManus 交流群" width="300" />
-</div>
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=FoundationAgents/OpenManus&type=Date)](https://star-history.com/#FoundationAgents/OpenManus&Date)
-
-## Sponsors
-Thanks to [PPIO](https://ppinfra.com/user/register?invited_by=OCPKCN&utm_source=github_openmanus&utm_medium=github_readme&utm_campaign=link) for computing source support.
-> PPIO: The most affordable and easily-integrated MaaS and GPU cloud solution.
-
-
-## Acknowledgement
-
-Thanks to [anthropic-computer-use](https://github.com/anthropics/anthropic-quickstarts/tree/main/computer-use-demo), [browser-use](https://github.com/browser-use/browser-use) and [crawl4ai](https://github.com/unclecode/crawl4ai) for providing basic support for this project!
-
-Additionally, we are grateful to [AAAJ](https://github.com/metauto-ai/agent-as-a-judge), [MetaGPT](https://github.com/geekan/MetaGPT), [OpenHands](https://github.com/All-Hands-AI/OpenHands) and [SWE-agent](https://github.com/SWE-agent/SWE-agent).
-
-We also thank stepfun(阶跃星辰) for supporting our Hugging Face demo space.
-
-OpenManus is built by contributors from MetaGPT. Huge thanks to this agent community!
-
-## Cite
-```bibtex
-@misc{openmanus2025,
-  author = {Xinbing Liang and Jinyu Xiang and Zhaoyang Yu and Jiayi Zhang and Sirui Hong and Sheng Fan and Xiao Tang and Bang Liu and Yuyu Luo and Chenglin Wu},
-  title = {OpenManus: An open-source framework for building general AI agents},
-  year = {2025},
-  publisher = {Zenodo},
-  doi = {10.5281/zenodo.15186407},
-  url = {https://doi.org/10.5281/zenodo.15186407},
-}
 ```
+OpenManus/
+├── app/
+│   ├── agent/          # 智能体核心逻辑
+│   ├── tool/           # 工具集
+│   │   └── financial_report.py   # 新增：财报分析工具
+│   └── prompt/         # 提示词（已汉化）
+├── config/             # 配置文件（config.toml 已 gitignore）
+├── examples/           # 示例数据（含 tesco_fy2024_sample.xlsx）
+├── web_ui.py           # 新增：Gradio Web UI 入口
+├── test_financial_tool.py  # 新增：工具测试脚本
+└── README.md           # 本文件
+```
+
+## 开源信息
+
+- GitHub：https://github.com/97-sc/OpenManus
+- 上游：https://github.com/FoundationAgents/OpenManus
+- 二次开发提交：3 次 feat 提交，新增 5 个文件，247+ 行代码
+- 许可证：沿用上游 MIT License
