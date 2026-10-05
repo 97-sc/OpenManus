@@ -15,15 +15,16 @@ OpenManus 是 FoundationAgents 开源的通用 AI 智能体框架。本项目在
 
 ### 1. 简体中文提示词（汉化方向）
 
-将系统提示词与默认示例全部汉化，降低中文用户理解成本，输出更贴近本地化表达习惯。
+在 `app/prompt/manus.py` 的系统提示词中加入语言约束，要求智能体始终使用简体中文交流（包括思考过程、工具调用说明、中间结果与最终回答），降低中文用户的理解成本。
 
 ### 2. Gradio Web UI（可视化方向）
 
-基于 Gradio 4.31.0 + starlette 0.40.0 搭建浏览器可视化界面，支持：
+基于 Gradio 4.31.0 + starlette 0.40.0 搭建浏览器可视化界面（`web_ui.py`），支持：
 
-- 自然语言输入任务
-- 实时查看智能体思考过程
-- 工具调用轨迹可视化
+- 自然语言输入任务，在浏览器中直接与 Manus 智能体交互
+- 复用框架默认的上下文管理，保留多轮对话历史
+
+> **实现说明**：当前 Web UI 是「一次执行、一次返回」——`ChatInterface` 的回调里 `await agent.run(message)` 等智能体完整跑完后一次性返回结果，**尚未接入流式输出**，因此界面上看不到逐步的 Action / Observation 轨迹。流式输出与执行过程可视化是后续计划。
 
 ### 3. FinancialReportTool（核心工具 - 财报分析方向）
 
@@ -39,8 +40,8 @@ OpenManus 是 FoundationAgents 开源的通用 AI 智能体框架。本项目在
 - 框架：OpenManus（基于 ReAct 智能体架构）
 - LLM：Ollama 本地推理（qwen2.5:7b）
 - Web UI：Gradio 4.31.0 + starlette 0.40.0
-- 数据处理：openpyxl（xlsx 读写）、pandas（数据清洗）
-- 报告生成：reportlab（PDF 输出）
+- 数据处理：openpyxl（xlsx 读写）
+- 报告输出：Markdown 文本（由工具直接返回给智能体）
 
 ## 快速开始
 
@@ -142,7 +143,7 @@ python test_financial_tool.py
 
 ### 智能体自动调用 FinancialReportTool
 
-用户只需用自然语言提出需求（如"分析 examples/tesco_fy2024_sample.xlsx 的财报"），Manus 智能体即**自主识别意图、决策并调用** FinancialReportTool，无需人工指定工具名称。完整调用链路：
+FinancialReportTool 注册后，它的 `name` 与 `description` 会随其他工具一起进入模型的可用工具清单。因此用户只需用自然语言提出需求（如"分析 examples/tesco_fy2024_sample.xlsx 的财报"），智能体即可根据工具描述判断该不该调、参数怎么填，无需人工指定工具名称。完整调用链路：
 
 ```mermaid
 flowchart LR
@@ -152,7 +153,8 @@ flowchart LR
     D --> E[输出 Markdown 报告<br/>7 项比率 + 同比分析]
 ```
 
-- 智能体可自主识别 Excel 表头、按期间分组
+- 工具按约定解析表格：取 `wb.active` 活动表，首行为期数、首列为科目名，其余为数值
+- 智能体自主判断是否调用该工具，并组装 `file_path` / `periods` / `analysis_type` 参数
 - 自动计算 7 项核心财务比率
 - 多期同比分析（YoY），按中国股市习惯用 📈/📉 标注涨跌
 - 输出 Markdown 结构化报告，可直接粘贴到周报/年报
@@ -169,13 +171,22 @@ OpenManus/
 ├── config/             # 配置文件（config.toml 已 gitignore）
 ├── examples/           # 示例数据（含 tesco_fy2024_sample.xlsx）
 ├── web_ui.py           # 新增：Gradio Web UI 入口
-├── test_financial_tool.py  # 新增：工具测试脚本
+├── test_financial_tool.py      # 新增：工具测试脚本
+├── generate_sample_report.py   # 新增：样例报告生成脚本
 └── README.md           # 本文件
 ```
+
+## 已知局限
+
+- **Web UI 未接入流式输出**：见上文实现说明，界面需等智能体完整跑完才出结果，看不到中间的执行轨迹。
+- **财报工具依赖固定表结构**：只读默认活动表（`wb.active`），且科目名硬编码为「营业收入 / 营业成本 / 净利润 / 总资产 / 总负债 / 股东权益 / 流动资产 / 流动负债 / 存货」。企业报表若使用「主营业务收入」等其他叫法或英文科目名，对应数值会取到 0 且不报错（静默失败）。后续需补同义词映射或模糊匹配。
+- **仅支持 .xlsx / .xlsm**：不支持 PDF 年报，而真实企业财报多为 PDF。
+- **Web UI 依赖需单独安装**：`requirements.txt` 未包含 Gradio 相关依赖，运行 `web_ui.py` 前需额外安装 `gradio==4.31.0`、`starlette==0.40.0`、`huggingface-hub==0.36.2`（三者版本需配套，否则会报 starlette / anyio 相关的依赖冲突）。
+- **未建评测集**：工具与提示词的验证均基于少量样例手工核对。
 
 ## 开源信息
 
 - GitHub：https://github.com/97-sc/OpenManus
 - 上游：https://github.com/FoundationAgents/OpenManus
-- 二次开发提交：5 次提交（3 次 feat 功能 + 1 次 docs 文档 + 1 次 chore 清理），新增文件 5+ 个，代码 247+ 行
+- 二次开发提交：8 次（3 次 feat 功能、1 次 fix 依赖、3 次 docs 文档、1 次 chore 清理），新增文件 5 个，新增代码 270+ 行
 - 许可证：沿用上游 MIT License
