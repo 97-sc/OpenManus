@@ -55,6 +55,30 @@ source venv/Scripts/activate   # Git Bash 环境
 pip install -r requirements.txt
 ```
 
+> **环境复现说明**
+>
+> 上面的命令装好的是**命令行 Agent 所需的主干依赖**，可直接跑 `python main.py`。
+>
+> Web UI 的依赖**不在** `requirements.txt` 里，因为它与主干存在真实冲突（详见
+> [已知局限](#已知局限)）。需要 Web UI 时单独安装：
+>
+> ```bash
+> pip install -r requirements-webui.txt
+> ```
+>
+> 开发本机环境的实际状态：Python 3.13 + venv，`pip check` 会报告 8 条版本告警，
+> 其中以下几条是**预期的、已知的**（为让 gradio 4.31.0 可用而降级所致）：
+>
+> | 包 | 装到的版本 | 上游要求 | 说明 |
+> |---|---|---|---|
+> | starlette | 0.40.0 | fastapi 0.141.1 要求 ≥0.46.0 | 降级换取 gradio 4.31.0 可用 |
+> | anyio | 4.4.0 | mcp 1.5.0 要求 ≥4.5 | 同上 |
+> | pydantic | 2.13.5 | 本仓库固定 `~=2.10.6` | 实际按较新版本安装 |
+> | pydantic_core | 2.46.5 | 本仓库固定 `~=2.27.2` | 同上 |
+>
+> 换句话说：**本仓库能跑通，但依赖并非完全自洽**，`requirements.txt` 里的版本号
+> 与实际环境存在偏差。根因与改进方向见 [已知局限](#已知局限)。
+
 ### 2. 配置 LLM
 
 复制 `config/config.example.toml` 为 `config/config.toml`，填入 Ollama 地址：
@@ -70,7 +94,10 @@ api_key = "ollama"
 
 ### 3. 启动 Web UI
 
+Web UI 依赖不在主 `requirements.txt` 中，需先安装：
+
 ```bash
+pip install -r requirements-webui.txt
 python web_ui.py
 ```
 
@@ -171,6 +198,7 @@ OpenManus/
 ├── config/             # 配置文件（config.toml 已 gitignore）
 ├── examples/           # 示例数据（含 tesco_fy2024_sample.xlsx）
 ├── web_ui.py           # 新增：Gradio Web UI 入口
+├── requirements-webui.txt      # 新增：Web UI 可选依赖（与主干有已知冲突，见下）
 ├── test_financial_tool.py      # 新增：工具测试脚本
 ├── generate_sample_report.py   # 新增：样例报告生成脚本
 └── README.md           # 本文件
@@ -181,7 +209,8 @@ OpenManus/
 - **Web UI 未接入流式输出**：见上文实现说明，界面需等智能体完整跑完才出结果，看不到中间的执行轨迹。
 - **财报工具依赖固定表结构**：只读默认活动表（`wb.active`），且科目名硬编码为「营业收入 / 营业成本 / 净利润 / 总资产 / 总负债 / 股东权益 / 流动资产 / 流动负债 / 存货」。企业报表若使用「主营业务收入」等其他叫法或英文科目名，对应数值会取到 0 且不报错（静默失败）。后续需补同义词映射或模糊匹配。
 - **仅支持 .xlsx / .xlsm**：不支持 PDF 年报，而真实企业财报多为 PDF。
-- **Web UI 依赖需单独安装**：`requirements.txt` 未包含 Gradio 相关依赖，运行 `web_ui.py` 前需额外安装 `gradio==4.31.0`、`starlette==0.40.0`、`huggingface-hub==0.36.2`（三者版本需配套，否则会报 starlette / anyio 相关的依赖冲突）。
+- **Web UI 依赖与主干存在真实冲突**：Gradio 相关依赖不在 `requirements.txt` 中，需单独安装 `requirements-webui.txt`。冲突根因是 **gradio 4.31.0 版本过旧**（2024-06 发布），其依赖链要求较旧的 starlette / anyio，与主干要求的 `fastapi → starlette ≥0.46`、`mcp 1.5.0 → anyio ≥4.5` 直接矛盾。本项目的处理方式是**显式降级这两个包、换取 Web UI 可启动**，代价是主干依赖不再完全自洽（安装后 `pip check` 会报告冲突，属预期内，对照表见「快速开始」）。更彻底的方案是把 gradio 升到 4.44.x / 5.x 以解除冲突，但需同步改造 `web_ui.py` 的 `ChatInterface` 调用方式，属独立改动，尚未实施。
+- **依赖未锁定为可复现状态**：当前 venv 是手工调平的结果，`pydantic`（实装 2.13.5 / 约束 `~=2.10.6`）、`pydantic_core`（实装 2.46.5 / 约束 `~=2.27.2`）、`fastapi`（实装 0.141.1 / 约束 `~=0.115.11`）均与 `requirements.txt` 不符。如需严格复现，应另行导出 lock 文件。
 - **未建评测集**：工具与提示词的验证均基于少量样例手工核对。
 
 ## 开源信息
